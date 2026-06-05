@@ -803,10 +803,14 @@ func (c *HelmClient) RunChartTests(releaseName string) (bool, error) {
 
 	client.Namespace = c.Settings.Namespace()
 
-	relI, err := client.Run(releaseName)
-	rel := relI.(*release.Release)
-	if err != nil && rel == nil {
+	relI, _, err := client.Run(releaseName)
+	if err != nil && relI == nil {
 		return false, fmt.Errorf("unable to find release '%s': %v", releaseName, err)
+	}
+
+	rel, ok := relI.(*release.Release)
+	if !ok || rel == nil {
+		return false, fmt.Errorf("unexpected release type for '%s'", releaseName)
 	}
 
 	// Check that there are no test failures
